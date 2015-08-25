@@ -1,0 +1,26 @@
+/*!
+ * interactive-captains-knock-charts
+ *
+ * @version development
+ * @author Simon Elvery <(none)>
+ */
+
+#interactive-captains-knock-charts {
+	.axis path,
+	.axis line {
+		fill: none;
+		stroke: #000;
+		shape-rendering: crispEdges;
+	}
+
+	.line {
+		fill: none;
+		stroke: #ccc;
+		stroke-width: 1.5px;
+
+		&.Michael-Clarke {
+			stroke: steelblue;
+		}
+
+	}
+}
