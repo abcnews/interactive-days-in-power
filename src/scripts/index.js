@@ -24,7 +24,7 @@ function init() {
 	container = document.getElementById('interactive-captains-knock-charts');
 
 	dataUrl = document.location.host.indexOf(':8000') === -1 ?
-		ABC.News.utilities.getResHost() + '/res/sites/news-projects/interactive-captains-knock-charts/1.0.0/data/cumulative-runs.csv' :
+		ABC.News.utilities.getResHost() + '/res/sites/news-projects/interactive-captains-knock-charts/1.0.1/data/cumulative-runs.csv' :
 		'/data/cumulative-runs.csv';
 
 	margin = {
@@ -113,23 +113,27 @@ function init() {
 
 		svg.selectAll('.y.axis .tick text').attr('transform', 'translate('+ -width + ',-10)');
 
-		svg.selectAll('.line').data(series, lineKey)
-			.enter().append('g').attr('class', function(d){
-				return 'line ' + slugify(d.key);
-			}).append('path')
-				.datum(function(d){return d.value;})
-				.attr("d", line);
+		svg.append('g').attr('class', 'lines').selectAll('.line').data(series, lineKey)
+			.enter().append('g')
+				.attr('class', function(d){
+					return 'line ' + slugify(d.key);
+				})
+				.attr('stroke', function(d){
+					return (d.key === 'Michael Clarke') ? 'rgb(70, 130, 180)' : 'rgb(204, 204, 204)';
+				})
+				.append('path')
+					.datum(function(d){return d.value;})
+					.attr("d", line);
 
 		svg.selectAll('.line').each(function(d){
 			if (d.key === 'Michael Clarke') {
-
 				this.parentNode.appendChild(this);
 			}
-		});
+		}).on('mouseenter', updateActivePlayer).on('mouseleave', updateActivePlayer);
 
 		// Draw labels
-		labels = svg.selectAll(".line-label").data(series, lineKey)
-			.enter().append("text")
+		labels = svg.append('g').attr('class', 'lines-labels').selectAll(".line-label").data(series, lineKey)
+			.enter().append('g').append("text")
 				.attr("class", function(d){
 					return 'line-label ' + slugify(d.key);
 				})
@@ -143,12 +147,38 @@ function init() {
 				.text(function(d) { return d.key; })
 				.attr("x", labelX)
 				.attr("y", labelY)
-				.attr("fill", "black");
+				.attr("fill", "rgba(0,0,0,1)");
 
 		labels.each(function(d) {
 			d.labelSize = [this.getBBox().width,this.getBBox().height];
 		});
+
+		labels.on('mouseenter', updateActivePlayer);
+		labels.on('mouseleave', updateActivePlayer);
 	});
+
+	function updateActivePlayer(d){
+
+		svg.selectAll('.line').transition().delay(100).attr('stroke', function(dd){
+			var selected = (d.key === dd.key && d3.event.type === 'mouseenter');
+			if (selected) {
+				this.parentNode.appendChild(this);
+			}
+			return (selected) ? 'rgb(56, 181, 81)' : (dd.key === 'Michael Clarke') ? 'rgb(70, 130, 180)' : 'rgb(204, 204, 204)';
+		});
+
+		svg.selectAll('.line-label').transition().delay(100)
+			.attr('fill', function(dd){
+				return (d.key === dd.key || d3.event.type === 'mouseleave' || dd.key === 'Michael Clarke') ? 'rgba(0,0,0,1)' : 'rgba(0,0,0,0)';
+			});
+
+		// Keep Clarkey on top
+		svg.selectAll('.line').each(function(d){
+			if (d.key === 'Michael Clarke') {
+				this.parentNode.appendChild(this);
+			}
+		});
+	}
 
 	function labelX(d) {
 		var natural = x(d.totalInnings);

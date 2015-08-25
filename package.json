@@ -1,6 +1,6 @@
 {
   "name": "interactive-captains-knock-charts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Visualisation of Australian captain's batting records.",
   "private": true,
   "repository": "ssh://git@stash.abc-dev.net.au:7999/news/interactive-captains-knock-charts.git",
