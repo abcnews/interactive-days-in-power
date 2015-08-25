@@ -6,6 +6,10 @@
  */
 
 #interactive-captains-knock-charts {
+	svg {
+		font-family: Arial;
+	}
+
 	.axis path,
 	.axis line {
 		fill: none;
@@ -22,5 +26,41 @@
 			stroke: steelblue;
 		}
 
+	}
+
+	.axis .tick line {
+		stroke: #ccc;
+	}
+
+	.axis text {
+		fill: #666;
+		font-family: Arial;
+	}
+
+	.axis .tick:first-child {
+		display: none;
+	}
+}
+
+
+.platform-mobile {
+	#interactive-captains-knock-charts {
+		svg {
+			font-size: 90%;
+		}
+
+		.line-label {
+			display: none;
+		}
+
+		text.Ricky-Ponting,
+		text.Donald-Bradman,
+		text.Michael-Clarke {
+			display: block;
+		}
+	}
+
+	.y.axis .tick:nth-child(2n+1) {
+		display: none;
 	}
 }
