@@ -31,18 +31,16 @@ var checkExist = setInterval(function() {
 function init() {
 	var container, svg, margin, x, y, xAxis, yAxis, width, height, line, dataUrl, series;
 
-	container = document.getElementById('interactive-captains-knock-charts');
+	container = document.getElementById('interactive-days-in-power');
 
-	var hint = hints.Hint(container, {
+	hints.Hint(container, {
 		text: 'Hover or tap',
 		className: 'chart-hint',
 		icon: 'tap',
 		auto: true
 	}).show();
 
-	dataUrl = document.location.host.indexOf(':8000') === -1 ?
-		ABC.News.utilities.getResHost() + '/res/sites/news-projects/interactive-days-in-power/1.0.1/data/days-in-power.csv' :
-		'/data/days-in-power.csv';
+	dataUrl = require('component-interactive-base-path')('interactive-days-in-power') + 'data/days-in-power.csv';
 
 	margin = {
 		top: 10,
