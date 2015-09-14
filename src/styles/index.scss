@@ -5,6 +5,8 @@
  * @author Simon Elvery <(none)>
  */
 
+@import '../../node_modules/component-interaction-hints/src/styles/index';
+
 #interactive-captains-knock-charts {
 	svg {
 		font-family: Arial;
@@ -33,6 +35,28 @@
 
 	.axis .tick:first-child {
 		display: none;
+	}
+
+	text.line-label {
+		font-weight: bold;
+	}
+}
+
+.chart-hint {
+
+	opacity: 0;
+	transition: opacity 0.5s;
+	z-index: 100;
+	border-radius: 0 0 0 3px;
+
+	&.initialised {
+		opacity: 1;
+	}
+
+	&.has-icon {
+		span.text {
+			max-width: 10em;
+		}
 	}
 }
 

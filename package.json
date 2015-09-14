@@ -1,7 +1,7 @@
 {
-  "name": "interactive-captains-knock-charts",
-  "version": "1.0.1",
-  "description": "Visualisation of Australian captain's batting records.",
+  "name": "interactive-days-in-power",
+  "version": "1.0.0",
+  "description": "Visualisation of PM's satisfaction rating.",
   "private": true,
   "repository": "ssh://git@stash.abc-dev.net.au:7999/news/interactive-captains-knock-charts.git",
   "contributors": [
@@ -34,6 +34,7 @@
     "install-mocha": "npm install mocha@^2.1.0 grunt-mocha-phantomjs@^0.6.0 --save-dev"
   },
   "dependencies": {
+    "component-interaction-hints": "git+ssh://git@stash.abc-dev.net.au:7999/news/component-interaction-hints.git",
     "slugify": "^0.1.1"
   }
 }

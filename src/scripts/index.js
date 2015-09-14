@@ -5,11 +5,21 @@
  * @author Simon Elvery <(none)>
  */
 
-var templates, checkExist, slugify;
+var templates, checkExist, slugify, hints;
 
 slugify = require('slugify');
+hints = require('component-interaction-hints');
 
 templates = require('./templates.js')(require('handlebars/runtime'));
+
+var colours = {
+	"Tony Abbott": '#4978BC',
+	"John Howard": '#4978BC',
+	"Paul Keating": '#BE4848',
+	"Julia Gillard": '#BE4848',
+	"Kevin Rudd '07": '#BE4848',
+	"Kevin Rudd '13": '#BE4848',
+};
 
 var checkExist = setInterval(function() {
 	if (typeof d3 !== 'undefined') {
@@ -23,19 +33,26 @@ function init() {
 
 	container = document.getElementById('interactive-captains-knock-charts');
 
+	var hint = hints.Hint(container, {
+		text: 'Hover or tap',
+		className: 'chart-hint',
+		icon: 'tap',
+		auto: true
+	}).show();
+
 	dataUrl = document.location.host.indexOf(':8000') === -1 ?
-		ABC.News.utilities.getResHost() + '/res/sites/news-projects/interactive-captains-knock-charts/1.0.1/data/cumulative-runs.csv' :
-		'/data/cumulative-runs.csv';
+		ABC.News.utilities.getResHost() + '/res/sites/news-projects/interactive-days-in-power/1.0.1/data/days-in-power.csv' :
+		'/data/days-in-power.csv';
 
 	margin = {
 		top: 10,
-		right: 25,
+		right: 0,
 		bottom: 20,
-		left: 12
+		left: 40
 	};
 
 	width = $(container).innerWidth() - margin.left - margin.right;
-	height = width * (9/16);
+	height = width * (9/25);
 
 	x = d3.scale.linear()
 		.range([0, width]);
@@ -49,11 +66,12 @@ function init() {
 
 	yAxis = d3.svg.axis()
 		.scale(y)
-		.orient('right');
+		.orient('left');
 
 	line = d3.svg.line()
-		.x(function(d) {return x(d.inning);})
-		.y(function(d) {return y(d.runs);});
+		.interpolate('cardinal')
+		.x(function(d) {return x(d.days);})
+		.y(function(d) {return y(d.satisfaction);});
 
 	svg = d3.select(container).append("svg")
 		.attr("width", width + margin.left + margin.right)
@@ -63,31 +81,35 @@ function init() {
 				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 	d3.csv(dataUrl, function(err, data){
-		var players, labels;
+		var starts, players, labels;
 
 		players = {};
 
+		starts = require('../data/start.json');
+
 		data.forEach(function(d) {
-			var key;
-			for (key in d) {
-				if (key !== 'inning' && d[key] !== '' && typeof d[key] !== 'undefined') {
-					players[key] = players[key] || [{inning:0, runs: 0}];
-					players[key].push({inning: +d['inning']+1, runs: +d[key]});
-				}
+			var days, start = new Date(starts[d.pm]);
+			players[d.pm] = players[d.pm] || [];
+			days = ((new Date(d.date))-start) / 1000 / 60 / 60 / 24;
+			if (days < 1500) {
+				players[d.pm].push({
+					days: days,
+					satisfaction: (d.satisfied-d.dissatisfied)/100
+				});
 			}
 		});
 
 		series = d3.entries(players);
 
 		series.forEach(function(d){
-			d.totalRuns = d3.max(d.value, function(d){return d.runs;});
-			d.totalInnings = d3.max(d.value, function(d){return d.inning;});
+			d.total = d3.max(d.value, function(d){return d.runs;});
+			d.totalDays = d3.max(d.value, function(d){return d.inning;});
 		});
 
-		x.domain([0,d3.max(series, function(d){return d3.max(d.value, function(d){return d.inning;});})]);
-		y.domain([d3.max(series, function(d){return d3.max(d.value, function(d){return d.runs;});}),0]);
+		x.domain([0,d3.max(series, function(d){return d3.max(d.value, function(d){return d.days;});})]);
+		y.domain([d3.max(series, function(d){return d3.max(d.value, function(d){return d.satisfaction;});}),d3.min(series, function(d){return d3.min(d.value, function(d){return d.satisfaction;});})]);
 
-		yAxis.tickSize(width, 0);
+		yAxis.tickSize(width, 0).tickFormat(d3.format(".0%"));
 
 		svg.append('g')
 			.attr('class', 'x axis')
@@ -98,20 +120,20 @@ function init() {
 				.attr('x', width)
 				.attr('class', 'label')
 				.style('text-anchor', 'end')
-				.text('Innings');
+				.text('Days in power');
 
 		svg.append('g')
 			.attr('class', 'y axis')
 			.call(yAxis)
 			.append('text')
 				.attr('transform', 'rotate(-90)')
-				.attr('y', -12)
+				.attr('y', 4)
 				.attr("dy", ".71em")
 				.style("text-anchor", "end")
-				.text("Cumulative runs");
+				.text("Net satisfaction");
 
 
-		svg.selectAll('.y.axis .tick text').attr('transform', 'translate('+ -width + ',-10)');
+		svg.selectAll('.y.axis .tick text,.y.axis .tick line').attr('transform', 'translate('+ width + ',-10)');
 
 		svg.append('g').attr('class', 'lines').selectAll('.line').data(series, lineKey)
 			.enter().append('g')
@@ -119,14 +141,14 @@ function init() {
 					return 'line ' + slugify(d.key);
 				})
 				.attr('stroke', function(d){
-					return (d.key === 'Michael Clarke') ? 'rgb(70, 130, 180)' : 'rgb(204, 204, 204)';
+					return (d.key === 'Tony Abbott' || d.key === 'Kevin Rudd \'07') ? colours[d.key] : 'rgb(204, 204, 204)';
 				})
 				.append('path')
 					.datum(function(d){return d.value;})
 					.attr("d", line);
 
 		svg.selectAll('.line').each(function(d){
-			if (d.key === 'Michael Clarke') {
+			if (d.key === 'Tony Abbott') {
 				this.parentNode.appendChild(this);
 			}
 		}).on('mouseenter', updateActivePlayer).on('mouseleave', updateActivePlayer);
@@ -164,43 +186,47 @@ function init() {
 			if (selected) {
 				this.parentNode.appendChild(this);
 			}
-			return (selected) ? 'rgb(56, 181, 81)' : (dd.key === 'Michael Clarke') ? 'rgb(70, 130, 180)' : 'rgb(204, 204, 204)';
+
+			return (selected) ? colours[dd.key] : (dd.key === 'Tony Abbott' || (dd.key === 'Kevin Rudd \'07' && d3.event.type === 'mouseleave')) ? colours[dd.key] : 'rgb(204, 204, 204)';
 		});
 
 		svg.selectAll('.line-label').transition().delay(100)
 			.attr('fill', function(dd){
-				return (d.key === dd.key || d3.event.type === 'mouseleave' || dd.key === 'Michael Clarke') ? 'rgba(0,0,0,1)' : 'rgba(0,0,0,0)';
+				return (d.key === dd.key || d3.event.type === 'mouseleave' || dd.key === 'Tony Abbott') ? 'rgba	(0,0,0,1)' : 'rgba(0,0,0,0)';
 			});
 
 		// Keep Clarkey on top
 		svg.selectAll('.line').each(function(d){
-			if (d.key === 'Michael Clarke') {
+			if (d.key === 'Tony Abbott') {
 				this.parentNode.appendChild(this);
 			}
 		});
 	}
 
 	function labelX(d) {
-		var natural = x(d.totalInnings);
-		if (d.key === 'Ricky Ponting') {
-			return natural - 10;
+		var natural = x(d.value[d.value.length-1].days);
+		if (d.key === 'John Howard') {
+			return natural - 45;
+		}
+		if (d.key === 'Paul Keating') {
+			return natural - 40;
+		}
+		if (d.key === 'Kevin Rudd \'13') {
+			return natural + 10;
 		}
 		return natural;
 	}
 
 	function labelY(d) {
-		var natural = y(d.totalRuns)-5;
-		if (d.key === 'Ricky Ponting') {
-			return natural + 5;
+		var natural = y(d.value[d.value.length-1].satisfaction);
+		if (d.key === 'Kevin Rudd \'13' || d.key === 'Kevin Rudd \'07' || d.key === 'Julia Gillard' || d.key === 'Tony Abbott') {
+			return natural + 12;
 		}
-		if (d.key === 'Donald Bradman') {
-			return natural - 5;
+		if (d.key === 'Paul Keating') {
+			return natural + 25;
 		}
-		if (d.key === 'Ian Chappell') {
-			return natural - 5;
-		}
-		if (d.key === 'Allan Border') {
-			return natural - 5;
+		if (d.key === 'John Howard') {
+			return natural - 25;
 		}
 		return natural;
 	}
