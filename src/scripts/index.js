@@ -29,28 +29,24 @@ var checkExist = setInterval(function() {
 }, 10);
 
 function init() {
-	var container, svg, margin, x, y, xAxis, yAxis, width, height, line, dataUrl, series;
+	var container, svg, margin, x, y, xAxis, yAxis, width, height, line, dataUrl, series, hint, ratio, mobile;
 
 	container = document.getElementById('interactive-days-in-power');
 
-	hints.Hint(container, {
+	hint = hints.Hint(container, {
 		text: 'Hover or tap',
 		className: 'chart-hint',
 		icon: 'tap',
 		auto: true
 	}).show();
+	hint.hide();
+	$(container).on('click', function(){
+		hint.hide();
+	});
 
 	dataUrl = require('component-interactive-base-path')('interactive-days-in-power') + 'data/days-in-power.csv';
 
-	margin = {
-		top: 10,
-		right: 0,
-		bottom: 20,
-		left: 40
-	};
-
-	width = $(container).innerWidth() - margin.left - margin.right;
-	height = width * (9/25);
+	setSizes();
 
 	x = d3.scale.linear()
 		.range([0, width]);
@@ -124,10 +120,12 @@ function init() {
 			.attr('class', 'y axis')
 			.call(yAxis)
 			.append('text')
-				.attr('transform', 'rotate(-90)')
-				.attr('y', 4)
+				.attr('class', 'y-label')
+				.attr('transform', (mobile) ? null : 'rotate(-90)')
+				.attr('y', (mobile) ? -20 : 4)
+				.attr('x', (mobile) ? -margin.left : 0)
 				.attr("dy", ".71em")
-				.style("text-anchor", "end")
+				.style("text-anchor", mobile ? 'start':"end")
 				.text("Net satisfaction");
 
 
@@ -155,7 +153,7 @@ function init() {
 		labels = svg.append('g').attr('class', 'lines-labels').selectAll(".line-label").data(series, lineKey)
 			.enter().append('g').append("text")
 				.attr("class", function(d){
-					return 'line-label ' + slugify(d.key);
+					return 'line-label ' + slugify(d.key).replace("'", '');
 				})
 				.attr('text-anchor', function(d) {
 					if (d.key === 'Ricky Ponting') {
@@ -233,12 +231,27 @@ function init() {
 		return d.key;
 	}
 
+	function setSizes() {
+
+		mobile = $('body').hasClass('platform-mobile');
+		ratio = mobile ? 3/4 : 9/25;
+
+		margin = {
+			top: (mobile) ? 30 : 10,
+			right: 0,
+			bottom: 20,
+			left: (mobile) ? 30 : 40
+		};
+
+		width = $(container).innerWidth() - margin.left - margin.right;
+		height = width * ratio;
+	}
+
 	d3.select(window).on('resize', function(){
 
 		var update;
 
-		width = $(container).innerWidth() - margin.left - margin.right;
-		height = width * (9/16);
+		setSizes();
 
 		x.range([0, width]);
 		y.range([0, height]);
@@ -257,7 +270,7 @@ function init() {
 			.select('.chart')
 				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-		svg.selectAll('.y.axis .tick text').attr('transform', 'translate('+ -width + ',-10)');
+		svg.selectAll('.y.axis .tick text,.y.axis .tick line').attr('transform', 'translate('+ width + ',-10)');
 
 		update = svg.selectAll('.line').data(series, lineKey);
 		update.select('path')
@@ -271,6 +284,12 @@ function init() {
 			.attr("x", labelX)
 			.attr("y", labelY)
 			.attr("fill", "black");
+
+		d3.select('.y-label')
+			.attr('transform', (mobile) ? null : 'rotate(-90)')
+			.attr('y', (mobile) ? -20 : 4)
+			.attr('x', (mobile) ? -margin.left : 0)
+			.style("text-anchor", mobile ? 'start':"end");
 	});
 
 }

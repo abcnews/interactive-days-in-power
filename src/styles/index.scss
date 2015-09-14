@@ -62,19 +62,23 @@
 
 
 .platform-mobile {
-	#interactive-captains-knock-charts {
-		svg {
-			font-size: 90%;
+
+	#interactive-days-in-power {
+		svg .axis .tick text {
+			font-size: 10px;
+		}
+
+		svg text.label {
+			font-size: 10px;
 		}
 
 		.line-label {
 			display: none;
-		}
 
-		text.Ricky-Ponting,
-		text.Donald-Bradman,
-		text.Michael-Clarke {
-			display: block;
+			&.Kevin-Rudd-07,
+			&.Tony-Abbott {
+				display: block;
+			}
 		}
 	}
 
