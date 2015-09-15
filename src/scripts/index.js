@@ -56,7 +56,7 @@ function init() {
 	heading = d3.select(container).append('div');
 	heading.append('h3').attr('class', 'chart-analysis-heading');
 	heading.append('button')
-		.attr('class', 'btn btn-sm btn-default')
+		.attr('class', 'btn btn-default')
 		.text('Next')
 		.on('click', onClickNext);
 
