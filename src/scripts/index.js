@@ -5,21 +5,11 @@
  * @author Simon Elvery <(none)>
  */
 
-var templates, checkExist, slugify, hints;
+var checkExist, slugify;
 
 slugify = require('slugify');
-hints = require('component-interaction-hints');
 
-templates = require('./templates.js')(require('handlebars/runtime'));
-
-var colours = {
-	"Tony Abbott": '#4978BC',
-	"John Howard": '#4978BC',
-	"Paul Keating": '#BE4848',
-	"Julia Gillard": '#BE4848',
-	"Kevin Rudd '07": '#BE4848',
-	"Kevin Rudd '13": '#BE4848',
-};
+var leaders = require('../data/leaders.json');
 
 var checkExist = setInterval(function() {
 	if (typeof d3 !== 'undefined') {
@@ -29,20 +19,9 @@ var checkExist = setInterval(function() {
 }, 10);
 
 function init() {
-	var container, svg, margin, x, y, xAxis, yAxis, width, height, line, dataUrl, series, hint, ratio, mobile;
+	var container, svg, margin, x, y, xAxis, yAxis, width, height, line, dataUrl, series, ratio, mobile, heading;
 
 	container = document.getElementById('interactive-days-in-power');
-
-	hint = hints.Hint(container, {
-		text: 'Hover or tap',
-		className: 'chart-hint',
-		icon: 'tap',
-		auto: true
-	}).show();
-	hint.hide();
-	$(container).on('click', function(){
-		hint.hide();
-	});
 
 	dataUrl = require('component-interactive-base-path')('interactive-days-in-power') + 'data/days-in-power.csv';
 
@@ -74,17 +53,26 @@ function init() {
 				.attr('class', 'chart')
 				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+	heading = d3.select(container).append('div');
+	heading.append('h3').attr('class', 'chart-analysis-heading');
+	heading.append('button')
+		.attr('class', 'btn btn-sm btn-default')
+		.text('Next')
+		.on('click', onClickNext);
+
+	d3.select(container).append('p').attr('class', 'chart-analysis');
+
 	d3.csv(dataUrl, function(err, data){
-		var starts, players, labels;
+		var players, labels;
 
 		players = {};
 
-		starts = require('../data/start.json');
-
 		data.forEach(function(d) {
-			var days, start = new Date(starts[d.pm]);
+			var days, start = new Date(leaders[d.pm].start);
+
 			players[d.pm] = players[d.pm] || [];
 			days = ((new Date(d.date))-start) / 1000 / 60 / 60 / 24;
+
 			if (days < 1500) {
 				players[d.pm].push({
 					days: days,
@@ -94,11 +82,6 @@ function init() {
 		});
 
 		series = d3.entries(players);
-
-		series.forEach(function(d){
-			d.total = d3.max(d.value, function(d){return d.runs;});
-			d.totalDays = d3.max(d.value, function(d){return d.inning;});
-		});
 
 		x.domain([0,d3.max(series, function(d){return d3.max(d.value, function(d){return d.days;});})]);
 		y.domain([d3.max(series, function(d){return d3.max(d.value, function(d){return d.satisfaction;});}),d3.min(series, function(d){return d3.min(d.value, function(d){return d.satisfaction;});})]);
@@ -118,27 +101,24 @@ function init() {
 
 		svg.append('g')
 			.attr('class', 'y axis')
+			.attr('transform', 'translate('+[width,0]+')')
 			.call(yAxis)
 			.append('text')
 				.attr('class', 'y-label')
-				.attr('transform', (mobile) ? null : 'rotate(-90)')
-				.attr('y', (mobile) ? -20 : 4)
-				.attr('x', (mobile) ? -margin.left : 0)
-				.attr("dy", ".71em")
-				.style("text-anchor", mobile ? 'start':"end")
+				.attr('transform', 'rotate(-90)')
+				.attr("dy", margin.right-2)
+				.style("text-anchor", "end")
 				.text("Net satisfaction");
 
-
-		svg.selectAll('.y.axis .tick text,.y.axis .tick line').attr('transform', 'translate('+ width + ',-10)');
+		svg.select('.y.axis .domain').attr('transform', 'translate('+[-width,0]+')');
+		svg.selectAll('.y.axis .tick text').attr('transform', 'translate('+ width + ',-10)');
 
 		svg.append('g').attr('class', 'lines').selectAll('.line').data(series, lineKey)
 			.enter().append('g')
 				.attr('class', function(d){
 					return 'line ' + slugify(d.key);
 				})
-				.attr('stroke', function(d){
-					return (d.key === 'Tony Abbott' || d.key === 'Kevin Rudd \'07') ? colours[d.key] : 'rgb(204, 204, 204)';
-				})
+				.attr('stroke', lineStroke)
 				.append('path')
 					.datum(function(d){return d.value;})
 					.attr("d", line);
@@ -171,52 +151,107 @@ function init() {
 			d.labelSize = [this.getBBox().width,this.getBBox().height];
 		});
 
+		updateAnalysis();
+
 		labels.on('mouseenter', updateActivePlayer);
 		labels.on('mouseleave', updateActivePlayer);
 	});
 
 	function updateActivePlayer(d){
 
-		svg.selectAll('.line').transition().delay(100).attr('stroke', function(dd){
-			var selected = (d.key === dd.key && d3.event.type === 'mouseenter');
-			if (selected) {
+		svg.selectAll('.line').each(function(dd){
+			dd.current = (d === dd && d3.event.type === 'mouseenter');
+			if (dd.current || dd.key === 'Tony Abbott') {
 				this.parentNode.appendChild(this);
 			}
-
-			return (selected) ? colours[dd.key] : (dd.key === 'Tony Abbott' || (dd.key === 'Kevin Rudd \'07' && d3.event.type === 'mouseleave')) ? colours[dd.key] : 'rgb(204, 204, 204)';
 		});
 
-		svg.selectAll('.line-label').transition().delay(100)
-			.attr('fill', function(dd){
-				return (d.key === dd.key || d3.event.type === 'mouseleave' || dd.key === 'Tony Abbott') ? 'rgba	(0,0,0,1)' : 'rgba(0,0,0,0)';
+		svg.selectAll('.line').transition().delay(100).attr('stroke', lineStroke);
+		svg.selectAll('.line-label')
+			.classed('current', isCurrent)
+			.attr("x", labelX)
+			.attr("y", labelY)
+			.transition().delay(100).attr('fill', labelFill);
+		updateAnalysis();
+	}
+
+	function labelFill(d) {
+		return (d.key === 'Tony Abbott' || d.current || series.every(function(d){ return !d.current; })) ? 'rgba(0,0,0,1)' : 'rgba(0,0,0,0)';
+	}
+
+	function lineStroke(d) {
+		return (d.key === 'Tony Abbott' || d.current) ? leaders[d.key].colour : 'rgb(204, 204, 204)';
+	}
+
+	function updateAnalysis() {
+		var current = series.filter(function(d){
+			return !!d.current;
+		})[0] || series.filter(function(d){
+			return d.key === 'Tony Abbott';
+		})[0];
+
+		d3.select('.chart-analysis-heading').text(current.key);
+		d3.select('.chart-analysis').text(leaders[current.key].analysis);
+
+	}
+
+	function onClickNext (){
+		var current;
+
+		current = series.filter(function(d){
+			return d.current;
+		});
+
+		if (current.length) {
+			current = series.indexOf(current[0]);
+			series.forEach(function(d, i){
+				d.current = ((current+1) % series.length === i);
 			});
+		} else {
+			series[0].current = true;
+		}
 
-		// Keep Clarkey on top
 		svg.selectAll('.line').each(function(d){
-			if (d.key === 'Tony Abbott') {
+			if (d.current || d.key === 'Tony Abbott') {
 				this.parentNode.appendChild(this);
 			}
 		});
+
+		svg.selectAll('.line').attr('stroke', lineStroke);
+		svg.selectAll('.line-label')
+			.attr('fill', labelFill)
+			.classed('current', isCurrent)
+			.attr("x", labelX)
+			.attr("y", labelY);
+
+		updateAnalysis();
+	}
+
+	function isCurrent(d) {
+		return !!d.current;
 	}
 
 	function labelX(d) {
 		var natural = x(d.value[d.value.length-1].days);
-		if (d.key === 'John Howard') {
-			return natural - 45;
-		}
-		if (d.key === 'Paul Keating') {
-			return natural - 40;
+		if (d.key === 'John Howard' || d.key === 'Paul Keating') {
+			return natural - this.getBBox().width/2 - ((mobile) ? 0 : 45);
 		}
 		if (d.key === 'Kevin Rudd \'13') {
-			return natural + 10;
+			console.log(this.getBBox().width/2);
+			return natural + this.getBBox().width/2;
 		}
 		return natural;
 	}
 
 	function labelY(d) {
 		var natural = y(d.value[d.value.length-1].satisfaction);
+
+		if (d.key === 'Julia Gillard' && mobile) {
+			return natural + 25;
+		}
+
 		if (d.key === 'Kevin Rudd \'13' || d.key === 'Kevin Rudd \'07' || d.key === 'Julia Gillard' || d.key === 'Tony Abbott') {
-			return natural + 12;
+			return natural + 14;
 		}
 		if (d.key === 'Paul Keating') {
 			return natural + 25;
@@ -237,10 +272,10 @@ function init() {
 		ratio = mobile ? 3/4 : 9/25;
 
 		margin = {
-			top: (mobile) ? 30 : 10,
-			right: 0,
+			top: 5,
+			right: 15,
 			bottom: 20,
-			left: (mobile) ? 30 : 40
+			left: 0
 		};
 
 		width = $(container).innerWidth() - margin.left - margin.right;
@@ -255,14 +290,19 @@ function init() {
 
 		x.range([0, width]);
 		y.range([0, height]);
+
 		yAxis.tickSize(width, 0);
 
 		d3.select('.x.axis')
 			.attr('transform', 'translate(0, '+height +')')
-			.call(xAxis);
+			.call(xAxis)
+			.select('text.label')
+				.attr('x', width);
 
 		d3.select('.y.axis')
-			.call(yAxis);
+			.attr('transform', 'translate('+[width,0]+')')
+			.call(yAxis)
+			.select('text.y-label');
 
 		svg = d3.select(container).select("svg")
 			.attr("width", width + margin.left + margin.right)
@@ -270,7 +310,9 @@ function init() {
 			.select('.chart')
 				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-		svg.selectAll('.y.axis .tick text,.y.axis .tick line').attr('transform', 'translate('+ width + ',-10)');
+		svg.select('.y.axis .domain').attr('transform', 'translate('+[-width,0]+')');
+		svg.selectAll('.y.axis .tick text').attr('transform', 'translate('+ width + ',-10)');
+
 
 		update = svg.selectAll('.line').data(series, lineKey);
 		update.select('path')
@@ -282,14 +324,7 @@ function init() {
 
 		svg.selectAll(".line-label")
 			.attr("x", labelX)
-			.attr("y", labelY)
-			.attr("fill", "black");
-
-		d3.select('.y-label')
-			.attr('transform', (mobile) ? null : 'rotate(-90)')
-			.attr('y', (mobile) ? -20 : 4)
-			.attr('x', (mobile) ? -margin.left : 0)
-			.style("text-anchor", mobile ? 'start':"end");
+			.attr("y", labelY);
 	});
 
 }

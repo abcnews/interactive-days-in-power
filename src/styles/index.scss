@@ -8,8 +8,20 @@
 @import '../../node_modules/component-interaction-hints/src/styles/index';
 
 #interactive-days-in-power {
+
+	position: relative;
+
 	svg {
 		font-family: Arial;
+	}
+
+	button.btn {
+		margin: 1em 0;
+	}
+
+	.chart-analysis-heading {
+		margin-top: 0.5em;
+		margin-bottom: 0;
 	}
 
 	.axis path,
@@ -68,17 +80,26 @@
 			font-size: 10px;
 		}
 
-		svg text.label {
-			font-size: 10px;
+		svg text.label,
+		svg text.y-label {
+			font-size: 12px;
 		}
 
 		.line-label {
 			display: none;
 
-			&.Kevin-Rudd-07,
+			&.current,
 			&.Tony-Abbott {
 				display: block;
 			}
+		}
+
+		button.btn {
+			width: 100%;
+		}
+
+		.chart-analysis {
+			margin-top: 0;
 		}
 	}
 

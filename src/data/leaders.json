@@ -1,0 +1,32 @@
+{
+	"Paul Keating": {
+		"start":"1991-12-20",
+		"colour": "#BE4848",
+		"analysis": "Paul Keating's net satisfaction rating started low and remained that way. At the same point into his prime ministership as Tony Abbott's toppling, Mr Keating's satisfaction rating was lower."
+	},
+	"John Howard": {
+		"start":"1996-03-11",
+		"colour": "#4978BC",
+		"analysis": "John Howard's net satisfaction rating shows a clear downward trend starting soon after his election, and actually intersects with Mr Abbott's. However, Mr Howard (who Mr Keating once dubbed “Lazarus with a triple bypass”) had a very different fate, turning his popularity around and going on to become Australia's second longest-serving PM."
+	},
+	"Kevin Rudd '07": {
+		"start":"2007-12-03",
+		"colour": "#BE4848",
+		"analysis": "After his stunning election win in 2007, Kevin Rudd's net satisfaction rating stayed above water until a sharp fall in mid-2010, which promptly led the ALP to replace him with Julia Gillard."
+	},
+	"Julia Gillard": {
+		"start":"2010-06-24",
+		"colour": "#BE4848",
+		"analysis": "Julia Gillard's satisfaction rating as PM follows a relatively similar path to Mr Abbott's, intersecting it multiple times – although her prime ministership ultimately lasted considerably longer."
+	},
+	"Kevin Rudd '13": {
+		"start":"2013-06-26",
+		"colour": "#BE4848",
+		"analysis": "Mr Rudd's return to the prime ministership in 2013 prompted a very brief bounce followed by a sharp decline – and then an electoral defeat."
+	},
+	"Tony Abbott": {
+		"start":"2013-09-18:",
+		"colour": "#4978BC",
+		"analysis": "Tony Abbott's prime ministership is the shortest since Harold Holt. His net satisfaction rating dropped almost immediately after he became prime minister and any signs of recovery were short-lived."
+	}
+}
