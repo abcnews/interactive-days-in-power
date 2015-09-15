@@ -211,6 +211,7 @@ function init() {
 	}
 
 	function labelX(d) {
+		console.log(d.value);
 		var natural = x(d.value[d.value.length-1].days);
 		if (d.key === 'John Howard' || d.key === 'Paul Keating') {
 			return natural - this.getBBox().width/2 - ((mobile) ? 0 : 45);
