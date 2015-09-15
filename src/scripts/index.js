@@ -127,7 +127,7 @@ function init() {
 			if (d.key === 'Tony Abbott') {
 				this.parentNode.appendChild(this);
 			}
-		}).on('mouseenter', updateActivePlayer).on('mouseleave', updateActivePlayer);
+		});
 
 		// Draw labels
 		labels = svg.append('g').attr('class', 'lines-labels').selectAll(".line-label").data(series, lineKey)
@@ -152,28 +152,7 @@ function init() {
 		});
 
 		updateAnalysis();
-
-		labels.on('mouseenter', updateActivePlayer);
-		labels.on('mouseleave', updateActivePlayer);
 	});
-
-	function updateActivePlayer(d){
-
-		svg.selectAll('.line').each(function(dd){
-			dd.current = (d === dd && d3.event.type === 'mouseenter');
-			if (dd.current || dd.key === 'Tony Abbott') {
-				this.parentNode.appendChild(this);
-			}
-		});
-
-		svg.selectAll('.line').transition().delay(100).attr('stroke', lineStroke);
-		svg.selectAll('.line-label')
-			.classed('current', isCurrent)
-			.attr("x", labelX)
-			.attr("y", labelY)
-			.transition().delay(100).attr('fill', labelFill);
-		updateAnalysis();
-	}
 
 	function labelFill(d) {
 		return (d.key === 'Tony Abbott' || d.current || series.every(function(d){ return !d.current; })) ? 'rgba(0,0,0,1)' : 'rgba(0,0,0,0)';
@@ -237,7 +216,6 @@ function init() {
 			return natural - this.getBBox().width/2 - ((mobile) ? 0 : 45);
 		}
 		if (d.key === 'Kevin Rudd \'13') {
-			console.log(this.getBBox().width/2);
 			return natural + this.getBBox().width/2;
 		}
 		return natural;
