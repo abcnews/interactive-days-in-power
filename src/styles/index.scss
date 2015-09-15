@@ -34,6 +34,10 @@
 	.line {
 		fill: none;
 		stroke-width: 1.5px;
+
+		&.Tony-Abbott {
+			stroke-width: 3.5px;
+		}
 	}
 
 	.axis .tick line {
