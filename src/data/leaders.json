@@ -28,5 +28,10 @@
 		"start":"2013-09-18",
 		"colour": "#4978BC",
 		"analysis": "Tony Abbott's prime ministership is the shortest since Harold Holt (excluding Kevin Rudd's second stint as PM). His net satisfaction rating dropped almost immediately after he became prime minister and any signs of recovery were short-lived."
+	},
+	"Malcolm Turnbull": {
+		"start":"2015-09-15",
+		"colour": "#4978BC",
+		"analysis": "Malcolm Turnbull's assention to the prime ministership was associated with a wave of satisfaction only topped by John Howard and Kevin Rud (the first time around). It didn't take long after an initial period of satisfaction for the seemingly inevitable decline begin."
 	}
 }

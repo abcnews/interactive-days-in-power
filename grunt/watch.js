@@ -13,7 +13,6 @@ module.exports = {
 	"js": {
 		"files": "src/scripts/**/*",
 		"tasks": [
-			"jshint:js",
 			"browserify:dev"
 		],
 		"interrupt": true

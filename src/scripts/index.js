@@ -76,7 +76,7 @@ function init() {
 			if (days < 1500) {
 				players[d.pm].push({
 					days: days,
-					satisfaction: (d.satisfied-d.dissatisfied)/100
+					satisfaction: ((d.net) ? d.net : d.satisfied-d.dissatisfied)/100
 				});
 			}
 		});
@@ -124,7 +124,7 @@ function init() {
 					.attr("d", line);
 
 		svg.selectAll('.line').each(function(d){
-			if (d.key === 'Tony Abbott') {
+			if (d.key === 'Malcolm Turnbull') {
 				this.parentNode.appendChild(this);
 			}
 		});
@@ -136,10 +136,9 @@ function init() {
 					return 'line-label ' + slugify(d.key).replace("'", '');
 				})
 				.attr('text-anchor', function(d) {
-					if (d.key === 'Ricky Ponting') {
-						return 'end';
+					if (d.key === 'Tony Abbott') {
+						return 'start';
 					}
-
 					return 'middle';
 				})
 				.text(function(d) { return d.key; })
@@ -155,18 +154,18 @@ function init() {
 	});
 
 	function labelFill(d) {
-		return (d.key === 'Tony Abbott' || d.current || series.every(function(d){ return !d.current; })) ? 'rgba(0,0,0,1)' : 'rgba(0,0,0,0)';
+		return (d.key === 'Malcolm Turnbull' || d.current || series.every(function(d){ return !d.current; })) ? 'rgba(0,0,0,1)' : 'rgba(0,0,0,0)';
 	}
 
 	function lineStroke(d) {
-		return (d.key === 'Tony Abbott' || d.current) ? leaders[d.key].colour : 'rgb(204, 204, 204)';
+		return (d.key === 'Malcolm Turnbull' || d.current) ? leaders[d.key].colour : 'rgb(204, 204, 204)';
 	}
 
 	function updateAnalysis() {
 		var current = series.filter(function(d){
 			return !!d.current;
 		})[0] || series.filter(function(d){
-			return d.key === 'Tony Abbott';
+			return d.key === 'Malcolm Turnbull';
 		})[0];
 
 		d3.select('.chart-analysis-heading').text(current.key);
@@ -191,7 +190,7 @@ function init() {
 		}
 
 		svg.selectAll('.line').each(function(d){
-			if (d.current || d.key === 'Tony Abbott') {
+			if (d.current || d.key === 'Malcolm Turnbull') {
 				this.parentNode.appendChild(this);
 			}
 		});
@@ -228,7 +227,7 @@ function init() {
 			return natural + 25;
 		}
 
-		if (d.key === 'Kevin Rudd \'13' || d.key === 'Kevin Rudd \'07' || d.key === 'Julia Gillard' || d.key === 'Tony Abbott') {
+		if (d.key === 'Kevin Rudd \'07' || d.key === 'Julia Gillard' || d.key === 'Malcolm Turnbull') {
 			return natural + 14;
 		}
 		if (d.key === 'Paul Keating') {
@@ -236,6 +235,9 @@ function init() {
 		}
 		if (d.key === 'John Howard') {
 			return natural - 25;
+		}
+		if (d.key === 'Tony Abbott') {
+			return natural - 15;
 		}
 		return natural;
 	}
